@@ -13,7 +13,7 @@ MAX_RESERVERING = 42108
 st.set_page_config(page_title="Super Simpele Pensioen & Jaarruimte Tool")
 
 st.title("💰 Super Simpele Pensioen Calculator")
-st.write("We maken het makkelijk: ontdek je jaarruimte en hoe je maandelijkse inleg groeit tot pensioen.")
+st.write("We maken het makkelijk: ontdek je jaarruimte en hoeveel je maandelijkse inleg later oplevert.")
 
 # -----------------------------
 # Opening: keuze type
@@ -61,37 +61,32 @@ st.metric("Reserveringsruimte", f"€ {reserveringsruimte:,.2f}")
 # Pensioen simulator
 # -----------------------------
 st.subheader("Stap 2: Pensioenopbouw simulatie")
-st.caption("Voer in hoeveel je maandelijks wilt sparen en zie hoeveel dat over de jaren wordt.")
+st.caption("Voer in hoeveel je maandelijks wilt sparen en vanaf welke leeftijd je wilt starten met uitkeren.")
 
 maandbedrag = st.number_input("Maandelijks bedrag (€)", min_value=0, value=300, step=50)
-jaren = st.number_input("Aantal jaren", min_value=1, value=30, step=1)
+jaren_opbouw = st.number_input("Aantal jaren sparen", min_value=1, value=30, step=1)
 rendement = st.number_input("Gemiddeld rendement (%)", min_value=0.0, value=8.0, step=0.1)
+start_leeftijd = st.number_input("Leeftijd waarop je wilt starten met pensioen", min_value=50, max_value=80, value=65, step=1)
+uitkeringsduur = st.number_input("Uitkeringsduur in jaren", min_value=5, max_value=40, value=20, step=1)
+st.caption("Maandelijkse bruto uitkering = totaal opgebouwde bedrag ÷ uitkeringsduur × 12 maanden.")
 
 # Berekening samengestelde interest
 r = rendement / 100 / 12  # maandrendement
-n = jaren * 12            # totaal aantal maanden
+n = jaren_opbouw * 12     # totaal maanden
 P = maandbedrag
-# Toekomstwaarde formule
 fv = P * ((1 + r)**n - 1) / r
 
-st.subheader("📈 Verwacht pensioen")
-st.metric(f"Bruto pensioen na {jaren} jaar", f"€ {fv:,.0f}")
+# Maandbedrag berekening
+maandelijkse_uitkering = fv / (uitkeringsduur * 12)
 
-# Optioneel: grafiek per jaar
-df = pd.DataFrame({"Maandelijkse inleg": [0]*n})
+st.subheader("📈 Verwacht pensioen")
+st.metric(f"Totaal opgebouwd pensioen", f"€ {fv:,.0f}")
+st.metric(f"Bruto maanduitkering ({uitkeringsduur} jaar)", f"€ {maandelijkse_uitkering:,.0f}")
+
+# Grafiek per jaar
 vals = []
 tot = 0
 for i in range(1, n+1):
     tot = tot*(1+r) + P
     if i % 12 == 0:
-        vals.append(tot)
-df = pd.DataFrame({"Jaar": list(range(1, len(vals)+1)), "Opgebouwd pensioen": vals})
-st.line_chart(df.rename(columns={"Jaar": "index"}).set_index("index"))
-
-# -----------------------------
-# Disclaimer
-# -----------------------------
-st.info(
-    "ℹ️ Dit is een eenvoudige informatieve tool. Gebruik je eigen jaaropgave of UPO voor exacte cijfers. "
-    "De pensioenopbouw simulatie is een schatting op basis van gemiddeld rendement. Raadpleeg een adviseur voor je persoonlijke situatie."
-)
+        vals.ap
