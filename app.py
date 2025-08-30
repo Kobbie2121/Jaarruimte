@@ -89,4 +89,14 @@ tot = 0
 for i in range(1, n+1):
     tot = tot*(1+r) + P
     if i % 12 == 0:
-        vals.ap
+        vals.append(tot)
+df = pd.DataFrame({"Jaar": list(range(1, len(vals)+1)), "Opgebouwd pensioen": vals})
+st.line_chart(df.rename(columns={"Jaar": "index"}).set_index("index"))
+
+# -----------------------------
+# Disclaimer
+# -----------------------------
+st.info(
+    "ℹ️ Dit is een eenvoudige informatieve tool. Gebruik je eigen jaaropgave of UPO voor exacte cijfers. "
+    "De pensioenopbouw simulatie is een schatting op basis van gemiddeld rendement. Raadpleeg een adviseur voor je persoonlijke situatie."
+)
