@@ -1,36 +1,36 @@
 import streamlit as st
 
 # -------------------------
-# Parameters (controleer jaarlijks)
+# Parameters 2025
 # -------------------------
-AOW_FRANCHISE = 16322        # AOW-franchise 2025 (voorbeeld — update jaarlijks)
-MAX_GRONDSLAG = 137800       # maximale pensioengrondslag 2025
-PERCENTAGE = 0.133           # 13,3% (jaarruimte-percentage)
-FACTOR_A_MULTIPLIER = 6.27   # factor A vermenigvuldiger
-K_BEDRAG = 1388              # vast bedrag K (controleer elk jaar)
+FRANCHISE = 13785        # AOW-franchise
+MAX_GRONDSLAG = 137000   # maximale pensioengrondslag
+PERCENTAGE = 0.30        # 30% voor jaarruimte berekening
+FACTOR_A_MULTIPLIER = 6.27
+K_BEDRAG = 1288
 
-# PAGE
+# -------------------------
+# Page setup
+# -------------------------
 st.set_page_config(page_title="Jaarruimte Calculator", layout="centered")
 st.title("🔎 Jaarruimte Calculator — huidig jaar")
-st.write("We berekenen alleen **jaarruimte voor het huidige jaar**. Geen reserveringsruimte of terugrekeningen naar voorgaande jaren.")
+st.write("Bereken eenvoudig je jaarruimte voor het huidige jaar. Alleen huidig jaar, geen reserveringsruimte. Dummy-uitleg bij elk veld.")
 
 # -------------------------
-# Vraag: hoe verdien je je geld?
+# Stap 1: hoe verdien je geld?
 # -------------------------
 st.header("Stap 1 — Hoe verdien je je geld?")
 st.write("Kies wat het beste bij jou past. Heb je meerdere inkomstenbronnen? Kies dan 'Combinatie'.")
-
 income_type = st.radio(
-    label="Hoe verdien je je geld?",
-    options=("Werknemer", "ZZP'er", "DGA", "Combinatie")
+    "Hoe verdien je je geld?",
+    ("Werknemer", "ZZP'er", "DGA", "Combinatie")
 )
 
 # -------------------------
-# Inputs per type (met dummy-uitleg)
+# Stap 2: invoer per type
 # -------------------------
 st.header("Stap 2 — Vul je cijfers in (gebruik jaaropgave / UPO / aangifte)")
 
-# containers for inputs
 salary = 0.0
 profit = 0.0
 dga_salary = 0.0
@@ -39,86 +39,82 @@ factor_a = 0.0
 def euro_input(label, key, default=0):
     return st.number_input(label, min_value=0.0, value=float(default), step=100.0, format="%.2f")
 
+# Werknemer
 if income_type == "Werknemer":
-    salary = euro_input("Bruto jaarsalaris (loon uit loondienst)", "salary_w",
-                        default=60000)
-    st.caption("ℹ️ Gebruik het bedrag 'loon voor de loonheffing' van je jaaropgave of het verzamelinkomen Box 1 uit je aangifte.")
-    factor_a = euro_input("Factor A (pensioenaangroei, uit UPO)", "factora_w", default=0)
-    st.caption("ℹ️ Factor A staat op je UPO. Vul 0 in als je geen werkgeverspensioen hebt.")
+    salary = euro_input("Bruto jaarsalaris (loon uit loondienst)", "salary_w", 135200)
+    st.caption("ℹ️ Jaaropgave: 'loon voor de loonheffing' of verzamelinkomen Box 1.")
+    factor_a = euro_input("Factor A (pensioenaangroei, uit UPO)", "factora_w", 2216)
+    st.caption("ℹ️ Factor A staat op je UPO. Vul 0 in als je geen pensioen via werkgever hebt.")
 
+# ZZP
 elif income_type == "ZZP'er":
-    profit = euro_input("Winst uit onderneming (jaar)", "profit_z", default=60000)
-    st.caption("ℹ️ Gebruik je winst zoals in je belastingaangifte (na zakelijke aftrekposten). ZZP'ers hebben meestal Factor A = 0.")
+    profit = euro_input("Winst uit onderneming (jaar)", "profit_z", 60000)
+    st.caption("ℹ️ Gebruik winst zoals in belastingaangifte. ZZP'er heeft meestal Factor A = 0.")
 
+# DGA
 elif income_type == "DGA":
-    dga_salary = euro_input("DGA salaris (pensioengevend salaris)", "salary_d", default=60000)
-    st.caption("ℹ️ Gebruik het salaris dat je jezelf uitkeert (gebruikelijk loon). Dividend telt niet mee voor deze berekening.")
-    factor_a = euro_input("Factor A (pensioenaangroei via BV / UPO)", "factora_d", default=0)
-    st.caption("ℹ️ Factor A staat op het UPO van je BV (of vraag je accountant).")
+    dga_salary = euro_input("DGA salaris (pensioengevend salaris)", "salary_d", 60000)
+    st.caption("ℹ️ Gebruik je gebruikelijk loon uit de BV; dividend telt niet mee.")
+    factor_a = euro_input("Factor A (pensioenaangroei via BV / UPO)", "factora_d", 2216)
+    st.caption("ℹ️ Factor A staat op UPO of vraag accountant. Vul 0 als niets opgebouwd.")
 
-else:  # Combinatie
-    st.write("Kies welke inkomens je hebt (vink aan) en vul de bedragen in.")
+# Combinatie
+else:
+    st.write("Kies welke inkomens je hebt en vul de bedragen in.")
     c1 = st.checkbox("Inkomen uit loondienst (werknemer)", value=True)
     if c1:
-        salary = euro_input("Bruto jaarsalaris (loon uit loondienst)", "salary_c_w", default=60000)
-        st.caption("ℹ️ Jaaropgave: 'loon voor de loonheffing'.")
+        salary = euro_input("Bruto jaarsalaris (loon uit loondienst)", "salary_c_w", 135200)
     c2 = st.checkbox("Winst uit onderneming (ZZP)", value=False)
     if c2:
-        profit = euro_input("Winst uit onderneming (jaar)", "profit_c_z", default=0)
-        st.caption("ℹ️ Gebruik winst na kosten, zoals in aangifte.")
+        profit = euro_input("Winst uit onderneming (jaar)", "profit_c_z", 0)
     c3 = st.checkbox("DGA salaris (BV)", value=False)
     if c3:
-        dga_salary = euro_input("DGA salaris (pensioengevend salaris)", "salary_c_d", default=0)
-        st.caption("ℹ️ Gebruik je officiële DGA-salaris; dividend telt niet mee.")
-    # Factor A: alleen relevant als er werkgever/BV pensioen is
+        dga_salary = euro_input("DGA salaris (pensioengevend salaris)", "salary_c_d", 60000)
     if c1 or c3:
-        factor_a = euro_input("Factor A (totale pensioenaangroei uit UPO's)", "factora_c", default=0)
-        st.caption("ℹ️ Als je pensioen via werkgever(s) of BV opgebouwd wordt, tel de Factor A's op en vul hier het totaal in. Vul 0 als niets.")
+        factor_a = euro_input("Factor A (totale pensioenaangroei uit UPO's)", "factora_c", 2216)
 
 # -------------------------
-# Bereken en toon duidelijke waarschuwing
+# Stap 3: Bereken jaarruimte
 # -------------------------
 st.markdown("---")
-st.header("Stap 3 — Bereken je jaarruimte (huidig jaar)")
+st.header("Stap 3 — Bereken jaarruimte (huidig jaar)")
 
 if st.button("Bereken jaarruimte"):
-    # valideer inputs
     total_income = float(salary or 0) + float(profit or 0) + float(dga_salary or 0)
     if total_income <= 0:
-        st.error("Vul minimaal één inkomen in (loon, winst of DGA-salaris).")
+        st.error("Vul minimaal één inkomen in.")
     else:
-        # premiegrondslag: eerst cap op max grondslag, dan franchise aftrekken
+        # premiegrondslag
         capped_income = min(total_income, MAX_GRONDSLAG)
-        premiegrondslag = max(0.0, capped_income - AOW_FRANCHISE)
+        premiegrondslag = max(0.0, capped_income - FRANCHISE)
 
-        # onderdelen berekenen
+        # berekening
         part_percentage = PERCENTAGE * premiegrondslag
         part_factorA = FACTOR_A_MULTIPLIER * float(factor_a or 0)
         jaarruimte_raw = part_percentage - part_factorA - K_BEDRAG
         jaarruimte = max(0.0, jaarruimte_raw)
 
-        # Toon resultaat + breakdown
-        st.success(f"📊 Je geschatte jaarruimte voor dit jaar: **€ {jaarruimte:,.2f}**")
+        # resultaat tonen
+        st.success(f"📊 Je geschatte jaarruimte voor dit jaar: **€ {jaarruimte:,.0f}**")
 
-        with st.expander("Toon berekeningsstappen (uitgelegd)"):
-            st.write(f"- Totaal opgegeven inkomen (gecap): € {capped_income:,.2f}  (max {MAX_GRONDSLAG:,})")
-            st.write(f"- AOW-franchise: € {AOW_FRANCHISE:,.2f}")
-            st.write(f"- Premiegrondslag (inkomen - franchise): € {premiegrondslag:,.2f}")
-            st.write(f"- 13,3% van premiegrondslag: € {part_percentage:,.2f}")
-            st.write(f"- Aftrek voor Factor A (6,27 × Factor A): € {part_factorA:,.2f}")
-            st.write(f"- Vaste correctie (K): € {K_BEDRAG:,.2f}")
-            st.write(f"- Jaarruimte = 13,3% × grondslag − 6,27 × Factor A − K = **€ {jaarruimte:,.2f}**")
+        # breakdown
+        with st.expander("Toon berekeningsstappen"):
+            st.write(f"- Totaal inkomen (gecap op max grondslag): € {capped_income:,.2f}")
+            st.write(f"- AOW-franchise: € {FRANCHISE:,.2f}")
+            st.write(f"- Premiegrondslag: € {premiegrondslag:,.2f}")
+            st.write(f"- 30% van premiegrondslag: € {part_percentage:,.2f}")
+            st.write(f"- Aftrek Factor A (6,27 × {factor_a}): € {part_factorA:,.2f}")
+            st.write(f"- K-bedrag: € {K_BEDRAG:,.2f}")
+            st.write(f"- Jaarruimte = 30% × grondslag − 6,27 × Factor A − K = **€ {jaarruimte:,.0f}**")
 
-        st.markdown(
-            """
-            ⚠️ **Belangrijk:**  
-            - Deze calculator berekent **alleen** de jaarruimte voor het **huidige jaar**.  
-            - **Reserveringsruimte** (mogelijkheden om in te halen uit eerdere jaren) is complex en is **niet** automatisch in deze tool verwerkt.  
-            - Controleer altijd je **UPO** voor de exacte Factor A en je jaaropgave/belastingaangifte voor verzamelinkomen.  
-            - Parameters zoals franchise, K-bedrag en maximale grondslag kunnen jaarlijks veranderen — controleer en update deze in de tool indien nodig.
-            """
-        )
+        # disclaimer
+        st.markdown("""
+        ⚠️ **Belangrijk:**  
+        - Deze calculator berekent **alleen de jaarruimte van het huidige jaar**.  
+        - **Reserveringsruimte** (mogelijkheden om in te halen uit eerdere jaren) is complex en wordt **niet** berekend.  
+        - Controleer altijd je **UPO** voor de exacte Factor A en je jaaropgave voor verzamelinkomen.  
+        - Parameters zoals franchise, K-bedrag en maximale grondslag veranderen jaarlijks; update indien nodig.
+        """)
 
-# Footer korte hulp
 st.markdown("---")
-st.caption("Hulp nodig? Gebruik de link in de bio/website voor extra uitlegvideos. Deze calculator is informatief; raadpleeg een belastingadviseur voor maatwerk.")
+st.caption("Hulp nodig? Zie uitlegvideo's of raadpleeg een belastingadviseur voor maatwerk.")
